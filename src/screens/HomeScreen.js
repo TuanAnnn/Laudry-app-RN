@@ -12,7 +12,8 @@ import * as Location from "expo-location";
 import Carousel from "../components/Carousel";
 import Service from "../components/Service";
 import DressItem from "../components/DressItem";
-
+import { useDispatch, useSelector } from "react-redux";
+import { getProducts } from "../redux/ProduceReducer";
 
 const services = [
   {
@@ -66,8 +67,10 @@ const services = [
   },
 ];
 
-
 export default function HomeScreen() {
+  const cart = useSelector((state) => state.cart.cart);
+  //console.log(cart)
+  const dispatch = useDispatch();
   const [displayCurrentAddress, setdisplayCurrentAddress] = useState(
     "We are loading you location"
   );
@@ -127,10 +130,18 @@ export default function HomeScreen() {
       }
     }
   };
+  const product = useSelector((state) => state.product.product);
+
+  useEffect(() => {
+    if (product.length > 0) return;
+    //fetch product
+    const fetchProduct = () => {
+      services.map((service) => dispatch(getProducts(service)));
+    };
+    fetchProduct();
+  }, []);
   return (
-    <ScrollView
-    style={{backgroundColor:'#F0F0F0',marginTop:50}}
-    >
+    <ScrollView style={{ backgroundColor: "#F0F0F0", marginTop: 50 }}>
       <View style={{ flexDirection: "row", alignItems: "center", padding: 10 }}>
         <Image source={require("../../assets/location_red.png")}></Image>
         <View>
@@ -154,24 +165,22 @@ export default function HomeScreen() {
           flexDirection: "row",
           alignItems: "center",
           justifyContent: "space-between",
-          borderWidth:0.8,
-          borderColor:"#C0C0C0",
-          borderRadius:8
+          borderWidth: 0.8,
+          borderColor: "#C0C0C0",
+          borderRadius: 8,
         }}
       >
         <TextInput placeholder="Search for items or More"></TextInput>
         <Image source={require("../../assets/search_sm.png")}></Image>
       </View>
       {/* Image Carousel */}
-      <Carousel/>
+      <Carousel />
       {/* Service Component */}
-      <Service/>
+      <Service />
       {/* Render all the products */}
-      {
-        services.map((service,index)=>(
-          <DressItem item={service} index={index}/>
-        ))
-      }
+      {product.map((service, index) => (
+        <DressItem item={service} index={index} />
+      ))}
     </ScrollView>
   );
 }
