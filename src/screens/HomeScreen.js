@@ -208,7 +208,7 @@ export default function HomeScreen() {
          </View>
    
          <Pressable onPress={()=>navigation.navigate('PickUp')}>
-           <Text style={{fontSize:17,fontWeight:"600",color:"white"}}>Proceed to cart</Text>
+           <Text style={{fontSize:17,fontWeight:"600",color:"white"}}>View Bucket</Text>
          </Pressable>
        </Pressable>
       )
