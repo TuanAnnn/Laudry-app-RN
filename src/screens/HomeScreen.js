@@ -14,6 +14,7 @@ import Service from "../components/Service";
 import DressItem from "../components/DressItem";
 import { useDispatch, useSelector } from "react-redux";
 import { getProducts } from "../redux/ProduceReducer";
+import { useNavigation } from "@react-navigation/native";
 
 const services = [
   {
@@ -74,7 +75,9 @@ export default function HomeScreen() {
   const [displayCurrentAddress, setdisplayCurrentAddress] = useState(
     "We are loading you location"
   );
+  const navigation = useNavigation()
   const [locationServicesEnabled, setlocationServicesEnabled] = useState(false);
+  const total = cart.map((item)=>item.quantity*item.price).reduce((curr,prev)=>curr+prev,0);
   useEffect(() => {
     checkIfLocationEnable();
     getCurrentLocation();
@@ -141,6 +144,7 @@ export default function HomeScreen() {
     fetchProduct();
   }, []);
   return (
+    <>
     <ScrollView style={{ backgroundColor: "#F0F0F0", marginTop: 50 }}>
       <View style={{ flexDirection: "row", alignItems: "center", padding: 10 }}>
         <Image source={require("../../assets/location_red.png")}></Image>
@@ -182,5 +186,33 @@ export default function HomeScreen() {
         <DressItem item={service} index={index} />
       ))}
     </ScrollView>
+    {
+      total == 0?(
+        null
+      ):(
+        <Pressable
+        style={{
+         backgroundColor: "#088F8F",
+         padding: 10,
+         marginBottom: 40,
+         margin: 15,
+         borderRadius: 7,
+         flexDirection: "row",
+         alignItems: "center",
+         justifyContent:"space-between",
+       }}
+       >
+         <View>
+           <Text style={{fontSize:17,fontWeight:"600",color:"white"}}>{cart.length <=1? cart.length+' item' : cart.length+' items'} | $ {total}</Text>
+           <Text style={{fontSize:15,fontWeight:"400",color:"white",marginVertical:6}}>extra charges might apply</Text>
+         </View>
+   
+         <Pressable onPress={()=>navigation.navigate('PickUp')}>
+           <Text style={{fontSize:17,fontWeight:"600",color:"white"}}>Proceed to cart</Text>
+         </Pressable>
+       </Pressable>
+      )
+    }
+    </>
   );
 }
