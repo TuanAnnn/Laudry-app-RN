@@ -13,12 +13,41 @@ import {
   } from "react-native";
   import React, { useState } from "react";
   import { useNavigation } from "@react-navigation/native";
+  import {auth, db} from '../../firebase.js'
+  import { createUserWithEmailAndPassword } from "firebase/auth";
+  import { doc, setDoc } from "firebase/firestore";
   
   const RegisterScreen = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [phone, setPhone] = useState("");
     const navigation = useNavigation()
+    const register= ()=>{
+        if(email == '' || password == '' || phone == ''){
+            Alert.alert(
+                "Invalid details",
+                "Please fill all the details",
+                [
+                  {
+                    text: "Cancel",
+                    onPress: () => console.log("Cancel Pressed"),
+                    style: "cancel"
+                  },
+                  { text: "OK", onPress: () => console.log("OK Pressed") }
+                ]
+              );          
+        }
+        createUserWithEmailAndPassword(auth,email,password).then((userCredentail)=>{
+            console.log("userCredentail",userCredentail)
+            const user = userCredentail._tokenResponse.email
+            const myUserUid = auth.currentUser.uid;
+
+            setDoc(doc(db,"users",`${myUserUid}`),{
+                email:user,
+                phone:phone
+            })
+        })
+    }
     return (
       <SafeAreaView
         style={{
@@ -55,6 +84,7 @@ import {
                 onChangeText={(value) => setEmail(value)}
                 placeholder="Email"
                 placeholderTextColor="black"
+                autoCapitalize="none"
                 style={{
                   borderBottomWidth: 1,
                   borderRadius: 12,
@@ -114,6 +144,7 @@ import {
             {/*button login */}
   
             <Pressable
+            onPress={register}
               style={{
                 width: 200,
                 backgroundColor: "#318CE7",

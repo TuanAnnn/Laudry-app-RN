@@ -9,49 +9,92 @@ import {
 } from "react-native";
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigation,useRoute } from "@react-navigation/native";
-import { addToCart,incrementQuantity,decrementQuantity } from "../redux/CartReducer";
-import { incrementQty,decrementQty } from "../redux/ProduceReducer";
+import { useNavigation, useRoute } from "@react-navigation/native";
+import {
+  addToCart,
+  incrementQuantity,
+  decrementQuantity,
+  cleanCart,
+} from "../redux/CartReducer";
+import { incrementQty, decrementQty } from "../redux/ProduceReducer";
+import { auth, db } from "../../firebase";
+import { doc, setDoc } from "firebase/firestore";
 
 const CartScreen = () => {
-  const navigation = useNavigation();
-  const route = useRoute();
-  const dispatch = useDispatch()
   const cart = useSelector((state) => state.cart.cart);
+  const route = useRoute();
   const total = cart
     .map((item) => item.quantity * item.price)
     .reduce((curr, prev) => curr + prev, 0);
-
-    useEffect(()=>{
-        console.log(cart)
-    },[])
+  const navigation = useNavigation();
+  const userUid = auth.currentUser.uid;
+  const dispatch = useDispatch();
+  const placeOrder = async () => {
+    navigation.navigate("Order");
+    dispatch(cleanCart())
+    await setDoc(
+      doc(db, "users", `${userUid}`),
+      {
+        orders: { ...cart },
+        pickUpDetails: route.params,
+      },
+      {
+        merge: true,
+      }
+    );
+  };
+  // useEffect(()=>{
+  //     console.log(cart)
+  // },[])
   return (
     <>
-    <ScrollView style={{ marginTop: 50 }}>
-      {total == 0 ? (
-        <View style={{ justifyContent: "center", alignItems: "center" }}>
-          <Text style={{ marginTop: 40 }}>Your cart is empty</Text>
-        </View>
-      ) : (
-        <>
-          <View
-            style={{ padding: 10, flexDirection: "row", alignItems: "center" }}
-          >
-            <TouchableOpacity onPress={()=>navigation.goBack()}>
-              <Image style={{width:24,height:24,marginRight:10}} source={require("../../assets/arrow.png")}></Image>
-            </TouchableOpacity>
-            <Text>Your Bucket</Text>
+      <ScrollView style={{ marginTop: 50 }}>
+        {total == 0 ? (
+          <View style={{ justifyContent: "center", alignItems: "center" }}>
+            <Text style={{ marginTop: 40 }}>Your cart is empty</Text>
           </View>
-          <Pressable style={{backgroundColor:'white',borderRadius:12,marginLeft:10,marginRight:10,padding:14}}>
-            {cart.map((item,index)=>(
+        ) : (
+          <>
+            <View
+              style={{
+                padding: 10,
+                flexDirection: "row",
+                alignItems: "center",
+              }}
+            >
+              <TouchableOpacity onPress={() => navigation.goBack()}>
+                <Image
+                  style={{ width: 24, height: 24, marginRight: 10 }}
+                  source={require("../../assets/arrow.png")}
+                ></Image>
+              </TouchableOpacity>
+              <Text>Your Bucket</Text>
+            </View>
+            <Pressable
+              style={{
+                backgroundColor: "white",
+                borderRadius: 12,
+                marginLeft: 10,
+                marginRight: 10,
+                padding: 14,
+              }}
+            >
+              {cart.map((item, index) => (
                 <View
-                key={index}
-                style={{flexDirection:'row',alignItems:'center',justifyContent:'space-between',marginVertical:15}}
+                  key={index}
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    marginVertical: 15,
+                  }}
                 >
-                    <Text style={{width:100,fontSize:16,fontWeight:'500'}}>{item.name}</Text>
+                  <Text style={{ width: 100, fontSize: 16, fontWeight: "500" }}>
+                    {item.name}
+                  </Text>
 
-                    {/* + -  button */}
-                    <Pressable
+                  {/* + -  button */}
+                  <Pressable
                     style={{
                       flexDirection: "row",
                       paddingHorizontal: 10,
@@ -116,11 +159,11 @@ const CartScreen = () => {
                     ${item.price * item.quantity}
                   </Text>
                 </View>
-            ))}
-          </Pressable>
-          <View style={{padding:10}}>
-            <Text>Billing detail</Text>
-          <View
+              ))}
+            </Pressable>
+            <View style={{ padding: 10 }}>
+              <Text>Billing detail</Text>
+              <View
                 style={{
                   backgroundColor: "white",
                   borderRadius: 7,
@@ -206,7 +249,7 @@ const CartScreen = () => {
                       color: "#088F8F",
                     }}
                   >
-                    {/* {route.params.pickUpDate} */}
+                    {/*{route.params.pickUpDate}*/}
                   </Text>
                 </View>
 
@@ -284,14 +327,14 @@ const CartScreen = () => {
                 </View>
               </View>
             </View>
-            </>
-      )}
-    </ScrollView>
-    {total === 0 ? null : (
+          </>
+        )}
+      </ScrollView>
+      {total === 0 ? null : (
         <Pressable
           style={{
             backgroundColor: "#088F8F",
-            marginTop:"auto",
+            marginTop: "auto",
             padding: 10,
             marginBottom: 40,
             margin: 15,
@@ -317,7 +360,7 @@ const CartScreen = () => {
             </Text>
           </View>
 
-          <Pressable>
+          <Pressable onPress={placeOrder}>
             <Text style={{ fontSize: 17, fontWeight: "600", color: "white" }}>
               Place Order
             </Text>

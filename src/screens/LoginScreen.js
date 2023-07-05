@@ -10,14 +10,38 @@ import {
   TextInput,
   Pressable,
   Alert,
+  ActivityIndicator,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigation } from "@react-navigation/native";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../../firebase";
 
 const LoginScreen = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading,setLoading] = useState(false)
   const navigation = useNavigation()
+  const login =()=>{
+    signInWithEmailAndPassword(auth,email,password).then((userCredential)=>{
+      console.log('userCredential',userCredential)
+
+      const user = userCredential.user
+      console.log(user)
+    })
+  }
+  useEffect(()=>{
+    setLoading(true)
+    const unsubcribe = auth.onAuthStateChanged((authUser)=>{
+      if(!authUser){
+        setLoading(false)
+      }
+      if(authUser){
+        navigation.navigate('Home')
+      }
+    });
+    return unsubcribe
+  },[])
   return (
     <SafeAreaView
       style={{
@@ -27,7 +51,13 @@ const LoginScreen = () => {
         padding: 10,
       }}
     >
-      <KeyboardAvoidingView>
+      {loading? (
+        <View style={{alignItems:'center',justifyContent:'center',flexDirection:'row',flex:1}}>
+          <Text style={{marginRight:10}}>Loading</Text>
+          <ActivityIndicator size='large' color='red'></ActivityIndicator>
+        </View>
+      ):(
+        <KeyboardAvoidingView>
         <View
           style={{
             justifyContent: "center",
@@ -53,6 +83,7 @@ const LoginScreen = () => {
               value={email}
               onChangeText={(value) => setEmail(value)}
               placeholder="Email"
+              autoCapitalize="none"
               placeholderTextColor="black"
               style={{
                 borderBottomWidth: 1,
@@ -90,6 +121,7 @@ const LoginScreen = () => {
           {/*button login */}
 
           <Pressable
+          onPress={login}
             style={{
               width: 200,
               backgroundColor: "#318CE7",
@@ -120,6 +152,7 @@ const LoginScreen = () => {
           </Pressable>
         </View>
       </KeyboardAvoidingView>
+      )}  
     </SafeAreaView>
   );
 };
