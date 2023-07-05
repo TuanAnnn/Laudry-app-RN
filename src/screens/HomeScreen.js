@@ -15,6 +15,8 @@ import DressItem from "../components/DressItem";
 import { useDispatch, useSelector } from "react-redux";
 import { getProducts } from "../redux/ProduceReducer";
 import { useNavigation } from "@react-navigation/native";
+import {db} from '../../firebase'
+import { collection, getDoc, getDocs } from "firebase/firestore";
 
 const services = [
   {
@@ -72,6 +74,7 @@ export default function HomeScreen() {
   const cart = useSelector((state) => state.cart.cart);
   //console.log(cart)
   const dispatch = useDispatch();
+  const [item,setItem] = useState([])
   const [displayCurrentAddress, setdisplayCurrentAddress] = useState(
     "We are loading you location"
   );
@@ -138,11 +141,17 @@ export default function HomeScreen() {
   useEffect(() => {
     if (product.length > 0) return;
     //fetch product
-    const fetchProduct = () => {
-      services.map((service) => dispatch(getProducts(service)));
+    const fetchProduct = async() => {
+      const colRef = collection(db,"types");
+      const docsSnap = await getDocs(colRef);
+      docsSnap.forEach((doc) => {
+        item.push(doc.data());
+      });
+      item?.map((service) => dispatch(getProducts(service)));
     };
     fetchProduct();
   }, []);
+  console.log(product)
   return (
     <>
     <ScrollView style={{ backgroundColor: "#F0F0F0", marginTop: 50 }}>
@@ -152,7 +161,7 @@ export default function HomeScreen() {
           <Text style={{ fontSize: 18, fontWeight: "600" }}>Home</Text>
           <Text>{displayCurrentAddress}</Text>
         </View>
-        <Pressable style={{ marginLeft: "auto", marginRight: 10 }}>
+        <Pressable onPress={()=>navigation.navigate('Profile')} style={{ marginLeft: "auto", marginRight: 10 }}>
           <Image
             style={{ width: 50, height: 50, borderRadius: 25 }}
             source={{
